@@ -66,6 +66,61 @@ composer.on("message:photo", async (ctx) => {
   }
 });
 
+composer.on("message:text", async (ctx, next) => {
+  if (!ctx.session.selfieFileId) {
+    return next();
+  }
+
+  const text = ctx.message.text.trim();
+
+  if (text.startsWith("/")) {
+    return next();
+  }
+
+  if (!text) {
+    await ctx.reply("Type a style description — for example: \"cyberpunk neon glow\" or \"retro 80s aesthetic\".");
+    return;
+  }
+
+  ctx.session.step = "generating";
+
+  const progressMsg = await ctx.reply(GENERATING, {
+    reply_markup: inlineKeyboard([
+      [inlineButton("Cancel", `cancel:${ctx.from.id}`)],
+    ]),
+  });
+
+  try {
+    const result = await generateImage(ctx.session.selfieFileId, text);
+
+    if (result.status === "success" && result.url) {
+      await ctx.replyWithPhoto(result.url, {
+        caption: SUCCESS_MESSAGE,
+        reply_markup: inlineKeyboard([
+          [inlineButton("⬅️ Back to menu", "menu:main")],
+        ]),
+      });
+    } else if (result.status === "illegal") {
+      await ctx.reply("⚠️ This image couldn't be processed due to content restrictions. Try a different photo.", {
+        reply_markup: inlineKeyboard([
+          [inlineButton("⬅️ Back to menu", "menu:main")],
+        ]),
+      });
+    } else {
+      throw new Error("Generation failed");
+    }
+  } catch (error) {
+    await ctx.reply(ERROR_MESSAGE, {
+      reply_markup: inlineKeyboard([
+        [inlineButton("🔄 Try again", `retry:${ctx.from.id}`)],
+        [inlineButton("⬅️ Back to menu", "menu:main")],
+      ]),
+    });
+  } finally {
+    ctx.session.step = "idle";
+  }
+});
+
 composer.callbackQuery(/^retry:(\d+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
   const userId = parseInt(ctx.match[1], 10);
