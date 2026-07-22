@@ -218,17 +218,37 @@ composer.callbackQuery(/^cancel:(\d+)$/, async (ctx) => {
 });
 
 const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1000;
+const API_TIMEOUT_MS = 30_000;
+
+function validateApiCredentials(): { ok: true; endpoint: string; key: string } | { ok: false } {
+  const endpoint = process.env.FACEFUSION_API_ENDPOINT;
+  const key = process.env.FACEFUSION_API_KEY;
+  if (!endpoint || !key) {
+    console.error("[generation] FACEFUSION_API_ENDPOINT or FACEFUSION_API_KEY not set — image generation is disabled");
+    return { ok: false };
+  }
+  return { ok: true, endpoint, key };
+}
+
+function isRetryableError(error: unknown): boolean {
+  const msg = (error as Error).message ?? String(error);
+  if (msg.includes("ECONNRESET") || msg.includes("ETIMEDOUT") || msg.includes("fetch failed")) {
+    return true;
+  }
+  if (msg.includes("network") || msg.includes("Network")) {
+    return true;
+  }
+  return false;
+}
 
 async function generateImage(
   ctx: Ctx,
   fileId: string,
   prompt: string,
 ): Promise<{ status: "success" | "failed" | "illegal"; url?: string }> {
-  const apiEndpoint = process.env.FACEFUSION_API_ENDPOINT;
-  const apiKey = process.env.FACEFUSION_API_KEY;
-
-  if (!apiEndpoint || !apiKey) {
-    console.error("[generation] FACEFUSION_API_ENDPOINT or FACEFUSION_API_KEY not set");
+  const creds = validateApiCredentials();
+  if (!creds.ok) {
     return { status: "failed" };
   }
 
@@ -253,13 +273,13 @@ async function generateImage(
       formData.append("source_image", photoBlob, "selfie.jpg");
       formData.append("prompt", prompt);
 
-      const response = await fetch(apiEndpoint, {
+      const response = await fetch(creds.endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
+          "Authorization": `Bearer ${creds.key}`,
         },
         body: formData,
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(API_TIMEOUT_MS),
       });
 
       if (!response.ok) {
@@ -271,24 +291,35 @@ async function generateImage(
         }
 
         if (attempt < MAX_RETRIES) {
-          await new Promise((r) => setTimeout(r, 1000 * attempt));
+          await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt));
           continue;
         }
 
         return { status: "failed" };
       }
 
-      const data = (await response.json()) as { image_url: string };
+      const data = (await response.json()) as { image_url?: string; url?: string; result?: string };
+      const imageUrl = data.image_url ?? data.url ?? data.result;
+      if (!imageUrl) {
+        console.error("[generation] No image URL in response:", JSON.stringify(data).slice(0, 200));
+        return { status: "failed" };
+      }
+
       const duration = Date.now() - start;
       console.log(`[generation] Success in ${duration}ms (attempt ${attempt})`);
 
-      return { status: "success", url: data.image_url };
+      return { status: "success", url: imageUrl };
     } catch (error) {
       const msg = (error as Error).message ?? String(error);
       console.error(`[generation] Error: ${msg} (attempt ${attempt}/${MAX_RETRIES})`);
 
+      if (attempt < MAX_RETRIES && isRetryableError(error)) {
+        await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt));
+        continue;
+      }
+
       if (attempt < MAX_RETRIES) {
-        await new Promise((r) => setTimeout(r, 1000 * attempt));
+        await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt));
         continue;
       }
 
