@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Social Media",
+    "steps": [
+      {
+        "send": { "callback": "category:social" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "📱 Social Media style selected!\n\nSend me your selfie and I'll generate a social media-ready version."
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

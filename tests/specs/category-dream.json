@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Dream",
+    "steps": [
+      {
+        "send": { "callback": "category:dream" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "🌙 Dream style selected!\n\nSend me your selfie and I'll generate a dreamy version."
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
