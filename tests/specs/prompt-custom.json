@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Custom prompt",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Enter free-form text prompt"
+            }
+          }
+        ],
+        "send": {
+          "callback": "prompt:custom"
+        }
+      }
+    ]
+  }
+]
