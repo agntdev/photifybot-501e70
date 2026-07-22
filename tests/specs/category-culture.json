@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Culture",
+    "steps": [
+      {
+        "send": { "callback": "category:culture" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "🎭 Culture style selected!\n\nSend me your selfie and I'll generate a culture-themed version."
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

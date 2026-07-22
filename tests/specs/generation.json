@@ -144,5 +144,32 @@
         ]
       }
     ]
+  },
+  {
+    "name": "Photo without category stores selfie and prompts for style",
+    "steps": [
+      {
+        "send": {
+          "update": {
+            "update_id": 3,
+            "message": {
+              "message_id": 3,
+              "from": { "id": 1, "is_bot": false, "first_name": "Test", "username": "test" },
+              "chat": { "id": 1, "type": "private" },
+              "date": 0,
+              "photo": [
+                { "file_id": "test_photo_id2", "file_unique_id": "test_photo_unique2", "file_size": 1000, "width": 100, "height": 100 }
+              ]
+            }
+          }
+        },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "Selfie stored! Now pick a style from the menu or type your own prompt." }
+          }
+        ]
+      }
+    ]
   }
 ]

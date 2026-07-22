@@ -4,8 +4,8 @@ import { mainMenuKeyboard, registerMainMenuItem } from "../toolkit/index.js";
 
 registerMainMenuItem({ label: "Love", data: "category:love", order: 10 });
 registerMainMenuItem({ label: "Fashion", data: "category:fashion", order: 20 });
-registerMainMenuItem({ label: "Custom prompt", data: "prompt:custom", order: 30 });
-registerMainMenuItem({ label: "Delete selfie", data: "selfie:delete", order: 40 });
+registerMainMenuItem({ label: "✏️ Custom prompt", data: "prompt:custom", order: 80 });
+registerMainMenuItem({ label: "🗑 Delete selfie", data: "selfie:delete", order: 90 });
 
 const composer = new Composer<Ctx>();
 
