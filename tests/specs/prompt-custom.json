@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Enter free-form text prompt"
+              "text": "✏️ Custom prompt mode!\n\nType your own style description — for example: \"cyberpunk neon glow\" or \"retro 80s aesthetic\"."
             }
           }
         ],

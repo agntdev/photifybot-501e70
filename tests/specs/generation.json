@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Custom prompt sets prompt and asks for selfie",
+    "steps": [
+      {
+        "send": { "callback": "prompt:custom" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "✏️ Custom prompt mode!\n\nType your own style description — for example: \"cyberpunk neon glow\" or \"retro 80s aesthetic\"."
+            }
+          }
+        ]
+      },
+      {
+        "send": { "text": "cyberpunk neon glow" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "✨ Prompt set: \"cyberpunk neon glow\"\n\nSend me your selfie and I'll generate something special!"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

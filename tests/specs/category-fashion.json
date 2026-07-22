@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Select 'Fashion' style category"
+              "text": "👗 Fashion style selected!\n\nSend me your selfie and I'll generate a fashion-forward version."
             }
           }
         ],

@@ -1,17 +1,46 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { inlineButton, inlineKeyboard } from "../toolkit/index.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "Custom prompt", data: "prompt:custom" }) if the toolkit exposes it.
+const composer = new Composer<Ctx>();
 
-const composer = new Composer();
+const CUSTOM_MESSAGE = "✏️ Custom prompt mode!\n\nType your own style description — for example: \"cyberpunk neon glow\" or \"retro 80s aesthetic\".";
+
+const AWAITING_PROMPT = "Type your custom prompt below:";
 
 composer.callbackQuery("prompt:custom", async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.reply("Enter free-form text prompt");
+  
+  ctx.session.activeCategory = "custom";
+  ctx.session.step = "awaiting_custom_prompt";
+  
+  await ctx.reply(CUSTOM_MESSAGE, {
+    reply_markup: {
+      force_reply: true,
+      selective: false,
+    },
+  });
+});
+
+composer.on("message:text", async (ctx, next) => {
+  if (ctx.session.step !== "awaiting_custom_prompt") {
+    return next();
+  }
+  
+  const prompt = ctx.message.text.trim();
+  if (prompt.length < 2) {
+    await ctx.reply("Prompt is too short — try again with more detail.");
+    return;
+  }
+  
+  ctx.session.activeCategory = prompt;
+  ctx.session.step = "awaiting_selfie";
+  
+  await ctx.reply(`✨ Prompt set: "${prompt}"\n\nSend me your selfie and I'll generate something special!`, {
+    reply_markup: inlineKeyboard([
+      [inlineButton("⬅️ Back to menu", "menu:main")],
+    ]),
+  });
 });
 
 export default composer;
