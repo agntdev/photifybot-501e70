@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Select 'Love' style category"
+              "text": "💕 Love style selected!\n\nSend me your selfie and I'll generate a love-themed version."
             }
           }
         ],

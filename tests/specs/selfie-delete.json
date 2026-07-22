@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Remove stored selfie from session"
+              "text": "No selfie to delete yet — upload one first!"
             }
           }
         ],
